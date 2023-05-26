@@ -18,7 +18,41 @@ export const GradientBackgroundCon = styled.div`
         background-position: 100% 50%;
     }
     100% {
-        background-position: 0% 50%;
+        background-position: 0% 50%; 
     }
     }
+`;
+
+export const BackgroundImageFirst = styled(Image)`
+    position: relative; 
+    z-index: 1;
+    margin-left: -10px;
+    margin-top: -10px;
+`;
+
+export const BackgroundImageSecond = styled(Image)`
+    position: fixed; 
+    z-index: 1;
+    right: -120px;
+    bottom: -10px;
+`;
+
+export const FooterCon = styled.div`
+    width: 100vw;
+    height: 50px;
+    text-align: center;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 15px;
+    position: absolute;
+    bottom: 0;
+    color: white; 
+    z-index: 999999;
+`;
+
+export const FooterLink = styled(Link)`
+    color: white;
+`;
+
+export const RedSpan = styled.span`
+    color: red;
 `;
