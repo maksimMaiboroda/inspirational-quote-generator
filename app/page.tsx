@@ -11,12 +11,25 @@ import {
     GradientBackgroundCon,
     FooterCon,
     FooterLink,
-    RedSpan
+    RedSpan,
+    QuoteGeneratorCon,
+    QuoteGeneratorInnerCon,
+    QuoteGeneratorTitle,
+    QuoteGeneratorSubTitle,
+    GenerateQuoteButton,
+    GenerateQuoteButtonText
 } from './components/QuoteGenerator/QuoteGeneratorElements'
 
 // Assets
 import CloudFirst from './assets/cloud-and-thunder.png'
 import CloudSecond from './assets/cloudy-weather.png'
+
+
+// AWS imports
+import { Amplify } from 'aws-amplify';
+import awsExports from '../src/aws-exports';
+
+Amplify.configure({ ...awsExports, ssr: true });
 
 export default function Home() {
     const [numberOfQuotes, setNumberOfQuotes] = useState<Number | null>(0)
@@ -24,7 +37,40 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
-       <GradientBackgroundCon>
+        {/* Background */}
+        <GradientBackgroundCon>
+
+            {/* Quote Generator Modal Pup-Up */}
+            {/* <QuoteGeneratorModal/> */}
+
+            {/* Quote Generator */}
+            <QuoteGeneratorCon>
+                <QuoteGeneratorInnerCon>
+                    <QuoteGeneratorTitle>
+                        Daily Inspiration Generator
+                    </QuoteGeneratorTitle>
+
+                    <QuoteGeneratorSubTitle>
+                        Looking for a splash of inspiration? Generate a quote card with a random inspirational quote provided by{' '}
+                        <FooterLink 
+                            href="https://zenquotes.io/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            ZenQuotes API.
+                        </FooterLink>
+                    </QuoteGeneratorSubTitle>
+
+                    <GenerateQuoteButton>
+                        <GenerateQuoteButtonText onClick={()=>{}}>
+                            Make a Quote
+                        </GenerateQuoteButtonText>
+                    </GenerateQuoteButton>
+                </QuoteGeneratorInnerCon>
+            </QuoteGeneratorCon>
+
+
+            {/* Background Images */}
             <BackgroundImageFirst 
                 src={CloudFirst}
                 height='300'
@@ -37,6 +83,7 @@ export default function Home() {
                 alt='cloudyBackgroundOne'
             />
 
+            {/* Footer */}
             <FooterCon>
                 <>
                     Quotes Generated: {numberOfQuotes}
@@ -51,7 +98,7 @@ export default function Home() {
                     </FooterLink>
                 </>
             </FooterCon>
-       </GradientBackgroundCon>
+        </GradientBackgroundCon>
     </main>
   )
 }
