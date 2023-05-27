@@ -232,6 +232,14 @@ export type DeleteQuoteAppDataMutation = {
   } | null,
 };
 
+export type GenerateAQuoteQueryVariables = {
+  input: string,
+};
+
+export type GenerateAQuoteQuery = {
+  generateAQuote?: string | null,
+};
+
 export type GetQuoteAppDataQueryVariables = {
   id: string,
 };
@@ -289,14 +297,6 @@ export type QuotesQueryNameQuery = {
     } | null >,
     nextToken?: string | null,
   } | null,
-};
-
-export type GenerateAQuoteQueryVariables = {
-  input: string,
-};
-
-export type GenerateAQuoteQuery = {
-  generateAQuote?: string | null,
 };
 
 export type OnCreateQuoteAppDataSubscriptionVariables = {
