@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import styles from './page.module.css'
 
 // Components
-import { 
-    BackgroundImageFirst, 
+import {
+    BackgroundImageFirst,
     BackgroundImageSecond,
     GradientBackgroundCon,
     FooterCon,
@@ -26,79 +26,133 @@ import CloudSecond from './assets/cloudy-weather.png'
 
 
 // AWS imports
-import { Amplify } from 'aws-amplify';
+import { API, Amplify } from 'aws-amplify';
 import awsExports from '../src/aws-exports';
+import { quotesQueryName } from '@/src/graphql/queries'
+import { GraphQLResult } from '@aws-amplify/api-graphql'
 
 Amplify.configure({ ...awsExports, ssr: true });
+
+// Interface for our DynamoDB object
+
+interface UpdateQuoteInfoData {
+    id: string;
+    queryName: string;
+    quotesGenerated: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+// type guard for our fetch function
+function isGraphQLResultForquotesQueryName(response: any): response is GraphQLResult<{
+    quotesQueryName: {
+        items: [UpdateQuoteInfoData];
+    };
+}> {
+    return response.data && response.data.quotesQueryName && response.data.quotesQueryName.items;
+}
 
 export default function Home() {
     const [numberOfQuotes, setNumberOfQuotes] = useState<Number | null>(0)
 
+    // Function to fetch our DynamoDB object (quotes generated)
+    const updateQuoteInfo = async () => {
+        try {
+            const response = await API.graphql<UpdateQuoteInfoData>({
+                query: quotesQueryName,
+                authMode: 'AWS_IAM',
+                variables: {
+                    queryName: "LIVE",
+                }
+            })
 
-  return (
-    <main className={styles.main}>
-        {/* Background */}
-        <GradientBackgroundCon>
+            // Create type guards
+            if (!isGraphQLResultForquotesQueryName(response)) {
+                throw new Error('Unexpected response from API.graphql');
+            }
 
-            {/* Quote Generator Modal Pup-Up */}
-            {/* <QuoteGeneratorModal/> */}
+            if (!response.data) {
+                throw new Error('Response data is undefined');
+            }
 
-            {/* Quote Generator */}
-            <QuoteGeneratorCon>
-                <QuoteGeneratorInnerCon>
-                    <QuoteGeneratorTitle>
-                        Daily Inspiration Generator
-                    </QuoteGeneratorTitle>
+            const receivedNumberOfQuotes = response.data.quotesQueryName.items[0].quotesGenerated;
+            setNumberOfQuotes(receivedNumberOfQuotes);
 
-                    <QuoteGeneratorSubTitle>
-                        Looking for a splash of inspiration? Generate a quote card with a random inspirational quote provided by{' '}
-                        <FooterLink 
-                            href="https://zenquotes.io/" 
-                            target="_blank" 
+        } catch (error) {
+            console.log('error getting quote data', error)
+        }
+    };
+
+
+    useEffect(() => {
+        updateQuoteInfo()
+    }, [])
+
+
+    return (
+        <main className={styles.main}>
+            {/* Background */}
+            <GradientBackgroundCon>
+
+                {/* Quote Generator Modal Pup-Up */}
+                {/* <QuoteGeneratorModal/> */}
+
+                {/* Quote Generator */}
+                <QuoteGeneratorCon>
+                    <QuoteGeneratorInnerCon>
+                        <QuoteGeneratorTitle>
+                            Daily Inspiration Generator
+                        </QuoteGeneratorTitle>
+
+                        <QuoteGeneratorSubTitle>
+                            Looking for a splash of inspiration? Generate a quote card with a random inspirational quote provided by{' '}
+                            <FooterLink
+                                href="https://zenquotes.io/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                ZenQuotes API.
+                            </FooterLink>
+                        </QuoteGeneratorSubTitle>
+
+                        <GenerateQuoteButton>
+                            <GenerateQuoteButtonText onClick={() => { }}>
+                                Make a Quote
+                            </GenerateQuoteButtonText>
+                        </GenerateQuoteButton>
+                    </QuoteGeneratorInnerCon>
+                </QuoteGeneratorCon>
+
+
+                {/* Background Images */}
+                <BackgroundImageFirst
+                    src={CloudFirst}
+                    height='300'
+                    alt='cloudyBackgroundOne'
+                />
+
+                <BackgroundImageSecond
+                    src={CloudSecond}
+                    height='300'
+                    alt='cloudyBackgroundOne'
+                />
+
+                {/* Footer */}
+                <FooterCon>
+                    <>
+                        Quotes Generated: {numberOfQuotes}
+                        <br />
+                        Developed with <RedSpan>♥</RedSpan> by{' '}
+                        <FooterLink
+                            href="https://github.com/maksimMaiboroda"
+                            target="_blank"
                             rel="noopener noreferrer"
                         >
-                            ZenQuotes API.
+                            @Majjboro
                         </FooterLink>
-                    </QuoteGeneratorSubTitle>
-
-                    <GenerateQuoteButton>
-                        <GenerateQuoteButtonText onClick={()=>{}}>
-                            Make a Quote
-                        </GenerateQuoteButtonText>
-                    </GenerateQuoteButton>
-                </QuoteGeneratorInnerCon>
-            </QuoteGeneratorCon>
-
-
-            {/* Background Images */}
-            <BackgroundImageFirst 
-                src={CloudFirst}
-                height='300'
-                alt='cloudyBackgroundOne'
-            />
-
-            <BackgroundImageSecond 
-                src={CloudSecond}
-                height='300'
-                alt='cloudyBackgroundOne'
-            />
-
-            {/* Footer */}
-            <FooterCon>
-                <>
-                    Quotes Generated: {numberOfQuotes}
-                    <br/>
-                    Developed with <RedSpan>♥</RedSpan> by{' '}
-                    <FooterLink 
-                        href="https://github.com/maksimMaiboroda" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                    >
-                        @Majjboro
-                    </FooterLink>
-                </>
-            </FooterCon>
-        </GradientBackgroundCon>
-    </main>
-  )
+                    </>
+                </FooterCon>
+            </GradientBackgroundCon>
+        </main>
+    )
 }
