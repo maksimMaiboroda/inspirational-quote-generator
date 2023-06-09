@@ -30,6 +30,7 @@ import { API, Amplify } from 'aws-amplify';
 import awsExports from '../src/aws-exports';
 import { quotesQueryName } from '@/src/graphql/queries'
 import { GraphQLResult } from '@aws-amplify/api-graphql'
+import QuoteGeneratorModal from './components/QuoteGenerator'
 
 Amplify.configure({ ...awsExports, ssr: true });
 
@@ -54,6 +55,9 @@ function isGraphQLResultForquotesQueryName(response: any): response is GraphQLRe
 
 export default function Home() {
     const [numberOfQuotes, setNumberOfQuotes] = useState<Number | null>(0)
+    const [isOpenGenerator, setIsOpenGenerator] = useState(false)
+    const [processingQuote, setProcessingQuote] = useState(false)
+    const [quoteReceived, setQuoteReceived] = useState<string | null>(null)
 
     // Function to fetch our DynamoDB object (quotes generated)
     const updateQuoteInfo = async () => {
@@ -88,6 +92,29 @@ export default function Home() {
         updateQuoteInfo()
     }, [])
 
+    const handleCloseGenerator = () => {
+        setIsOpenGenerator(false);
+    }
+
+    const handleOpenGenerator = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        setIsOpenGenerator(true);
+        setProcessingQuote(true);
+
+        try {
+            // Run Lambda Function
+            // setProcessingQuote(false);
+
+            setTimeout(()=>{
+                setProcessingQuote(false);
+            }, 3000)
+        } catch (error) {
+            console.log('error generation quote: ', error);
+            setProcessingQuote(false);
+        }
+
+    }
+
 
     return (
         <main className={styles.main}>
@@ -95,7 +122,14 @@ export default function Home() {
             <GradientBackgroundCon>
 
                 {/* Quote Generator Modal Pup-Up */}
-                {/* <QuoteGeneratorModal/> */}
+                <QuoteGeneratorModal
+                    isOpen={isOpenGenerator}
+                    onClose={handleCloseGenerator}
+                    processingQuote={processingQuote}
+                    setProcessingQuote={setProcessingQuote}
+                    quoteReceived={quoteReceived}
+                    setQuoteReceived={setQuoteReceived}
+                />
 
                 {/* Quote Generator */}
                 <QuoteGeneratorCon>
@@ -115,8 +149,8 @@ export default function Home() {
                             </FooterLink>
                         </QuoteGeneratorSubTitle>
 
-                        <GenerateQuoteButton>
-                            <GenerateQuoteButtonText onClick={() => { }}>
+                        <GenerateQuoteButton onClick={handleOpenGenerator}>
+                            <GenerateQuoteButtonText>
                                 Make a Quote
                             </GenerateQuoteButtonText>
                         </GenerateQuoteButton>
