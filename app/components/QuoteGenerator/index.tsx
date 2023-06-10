@@ -49,8 +49,6 @@ const QuoteGeneratorModal = (props: PropsTypes) => {
             const blob = new Blob([binaryData], { type: 'image/png' });
             const blobUrlGenerated = URL.createObjectURL(blob);
 
-            console.log({ blobUrlGenerated })
-
             setBlobUrl(blobUrlGenerated);
 
             return () => {
@@ -102,7 +100,7 @@ const QuoteGeneratorModal = (props: PropsTypes) => {
                                 </QuoteGeneratorSubTitle>
                             </>
                         )}
-                        {quoteReceived === null &&
+                        {quoteReceived !== null &&
                             <>
                                 <QuoteGeneratorTitle>
                                     Download your quote!

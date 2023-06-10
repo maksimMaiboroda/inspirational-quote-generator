@@ -28,14 +28,23 @@ import CloudSecond from './assets/cloudy-weather.png'
 // AWS imports
 import { API, Amplify } from 'aws-amplify';
 import awsExports from '../src/aws-exports';
-import { quotesQueryName } from '@/src/graphql/queries'
+import { generateAQuote, quotesQueryName } from '@/src/graphql/queries'
 import { GraphQLResult } from '@aws-amplify/api-graphql'
 import QuoteGeneratorModal from './components/QuoteGenerator'
 
 Amplify.configure({ ...awsExports, ssr: true });
 
-// Interface for our DynamoDB object
 
+// interface for out appsync <> lambda JSON response
+interface GenerateAQuoteData {
+    generateAQuote: {
+        statusCode: number;
+        headers: { [key: string]: string };
+        body: string
+    }
+}
+
+// Interface for our DynamoDB object
 interface UpdateQuoteInfoData {
     id: string;
     queryName: string;
@@ -94,6 +103,8 @@ export default function Home() {
 
     const handleCloseGenerator = () => {
         setIsOpenGenerator(false);
+        setProcessingQuote(false);
+        setQuoteReceived(null);
     }
 
     const handleOpenGenerator = async (e: React.SyntheticEvent) => {
@@ -103,11 +114,26 @@ export default function Home() {
 
         try {
             // Run Lambda Function
-            // setProcessingQuote(false);
 
-            setTimeout(()=>{
-                setProcessingQuote(false);
-            }, 3000)
+            const runFunction = "runFunction";
+            const runFunctionStringified = JSON.stringify(runFunction);
+            const response = await API.graphql<GenerateAQuoteData>({
+                query: generateAQuote,
+                authMode: "AWS_IAM",
+                variables: {
+                    input: runFunctionStringified
+                }
+            })
+            const responseStringified = JSON.stringify(response);
+            const responseReStringified = JSON.stringify(responseStringified);
+            const bodyIndex = responseReStringified.indexOf("body=") + 5;
+            const bodyAndBase64 = responseReStringified.substring(bodyIndex);
+            const bodyArray = bodyAndBase64.split(",");
+            const body = bodyArray[0];
+
+            setQuoteReceived(body);
+            setProcessingQuote(false);
+            updateQuoteInfo();
         } catch (error) {
             console.log('error generation quote: ', error);
             setProcessingQuote(false);
